@@ -17,21 +17,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   session: { strategy: "jwt" },
+
   callbacks: {
     async jwt({ token, account }) {
       if (account?.access_token) {
         token.accessToken = account.access_token
         token.refreshToken = account.refresh_token
-        token.expiresAt = Date.now() + (account.expires_at ?? 0) * 1000
+        token.expiresAt = account.expires_at
+          ? Date.now() + account.expires_at * 1000
+          : undefined
       }
       return token
     },
     async session({ session, token }) {
-      (session as any).accessToken = token.accessToken
+      session.accessToken = token.accessToken as string | undefined
       return session
     },
   },
-  // You set a custom base path; keep the handler under /app/auth/[...nextauth]/route.ts
-  basePath: "/auth",
-  debug: !!process.env.AUTH_DEBUG,
 })
